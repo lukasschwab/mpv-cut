@@ -11,6 +11,7 @@ local HARDSUBS = false
 local ENCODE_CRF = 16
 local ENCODE_PRESET = "superfast"
 
+local KEY_INSERT_CHAPTER = "i"
 local KEY_CUT = "c"
 local KEY_TOGGLE_ACTION = "a"
 local KEY_TOGGLE_GENERATE_LIST = "l"
@@ -187,6 +188,34 @@ local function toggle_action()
 	refresh_osd()
 end
 
+local function insert_chapter()
+	local time = mp.get_property_number("time-pos")
+	local curr_chapter = mp.get_property_number("chapter")
+	local chapter_count = mp.get_property_number("chapter-list/count")
+	local all_chapters = mp.get_property_native("chapter-list")
+
+	if chapter_count == 0 then
+		all_chapters[1] = {
+			title = "chapter_1",
+			time = time
+		}
+		curr_chapter = 0
+	else
+		for i = chapter_count, curr_chapter + 2, -1 do
+			all_chapters[i + 1] = all_chapters[i]
+		end
+		all_chapters[curr_chapter+2] = {
+			title = "chapter_"..curr_chapter,
+			time = time
+		}
+	end
+
+	mp.set_property_native("chapter-list", all_chapters)
+	mp.set_property_number("chapter", curr_chapter+1)
+
+end
+
+mp.add_key_binding(KEY_INSERT_CHAPTER, "insert_chapter", insert_chapter)
 mp.add_key_binding(KEY_CUT, "cut", put_time)
 mp.add_key_binding(KEY_TOGGLE_HARDSUBS, "toggle_hardsubs", toggle_hardsubs)
 mp.add_key_binding(KEY_TOGGLE_MP4, "toggle_mp4", toggle_mp4)

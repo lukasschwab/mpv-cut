@@ -102,40 +102,38 @@ local function cut(start_time, end_time)
 		mp.commandv("run", "mkdir", "-p", output_dir)
 	end
 
+	-- Built opts in reverse order.
+	local opts = {cut_output_path}
 	if ACTION == "copy" then
-		mp.commandv(
-			"run",
-			"ffmpeg", "-nostdin", "-y",
-			"-ss", start_time,
-			"-i", input_path,
-			"-t", end_time - start_time,
-			-- Middle
+		opts = {
 			"-c", "copy",
-			-- End
-			cut_output_path
-		)
+			unpack(opts)
+		}
 	elseif ACTION == "encode" then
-		mp.commandv(
-			"run",
-			"ffmpeg", "-nostdin", "-y",
-			"-ss", start_time,
-			"-i", input_path,
-			"-t", end_time - start_time,
-			-- Middle
+		if HARDCODE_SUBS then
+			opts = {
+				-- Scale subtitle stream to match video, then overlay as v.
+				"-filter_complex", "[0:s][0:v]scale2ref[b][a];[a][b]overlay[v]",
+				"-map", "[v]", "-map", "0:a",
+				unpack(opts)
+			}
+		end
+		opts = {
 			"-pix_fmt", "yuv420p",
 			"-crf", ENCODE_CRF,
 			"-preset", ENCODE_PRESET,
-			-- TODO: find a way to selectively soft-code subs when possible,
-			-- https://stackoverflow.com/questions/58808907/is-it-possible-to-determine-if-a-subtitle-track-is-imaged-based-or-text-based-wi
-			-- I really want as much optionality as possible: ideally, a separate SRT file.
-			-- Scale subtitle stream to match video, then overlay as v.
-			-- TODO: make all sub encoding an option.
-			"-filter_complex", "[0:s][0:v]scale2ref[b][a];[a][b]overlay[v]",
-			"-map", "[v]", "-map", "0:a",
-			-- End
-			cut_output_path
-		)
+			unpack(opts)
+		}
 	end
+
+	mp.commandv(
+		"run",
+		"ffmpeg", "-nostdin", "-y",
+		"-ss", start_time,
+		"-i", input_path,
+		"-t", end_time - start_time,
+		unpack(opts)
+	)
 
 	local before = 0
 	local after = 0

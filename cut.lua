@@ -9,7 +9,7 @@ local USE_GLOBAL_DIR = false
 local ENCODE_CRF = 16
 local ENCODE_PRESET = "superfast"
 
-local HARDCODE_SUBS = true
+local HARDCODE_SUBS = false
 
 local DEFAULT_CHANNEL = 0
 
@@ -112,7 +112,7 @@ local function cut(start_time, end_time)
 	elseif ACTION == "encode" then
 		if HARDCODE_SUBS then
 			opts = {
-				-- Scale subtitle stream to match video, then overlay as v.
+				-- Scale subtitle stream to match video, then overlay.
 				"-filter_complex", "[0:s][0:v]scale2ref[b][a];[a][b]overlay[v]",
 				"-map", "[v]", "-map", "0:a",
 				unpack(opts)

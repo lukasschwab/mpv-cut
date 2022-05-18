@@ -2,7 +2,7 @@
 
 local GLOBAL_DIR = "~/Desktop"
 
-local ACTION = "encode"
+local ACTION = "copy"
 local GENERATE_LIST = true
 local USE_GLOBAL_DIR = false
 
